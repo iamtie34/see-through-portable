@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import re
 import atexit
+import signal
 from datetime import datetime
 
 # 確保從專案根目錄執行
@@ -64,7 +65,7 @@ LANG = {
         'depth_same': 'Depth resolution same as layers',
         'depth_same_info': 'Uncheck to set a custom depth inference resolution. Default: -1 (same as layers)',
         'depth_resolution': 'Depth Resolution',
-        'depth_resolution_info': 'Lower values (e.g. 720) save VRAM with minimal quality loss. Default: 720',
+        'depth_resolution_info': 'Lower values save VRAM with slightly reduced depth accuracy. Default: 768 (model training resolution)',
         'run': 'Start Processing',
         'status': 'Status',
         'psd': 'Download PSD File',
@@ -96,7 +97,7 @@ LANG = {
         'depth_same': '深度解析度與圖層相同',
         'depth_same_info': '取消勾選可自訂深度推理解析度。預設：-1（與圖層相同）',
         'depth_resolution': '深度解析度',
-        'depth_resolution_info': '較低值如 720 可節省 VRAM，品質損失極小。預設：720',
+        'depth_resolution_info': '較低值可節省 VRAM，深度精度會略降。預設：768（模型訓練解析度）',
         'run': '開始處理',
         'status': '狀態',
         'psd': '下載 PSD 檔案',
@@ -281,9 +282,9 @@ with gr.Blocks(title='See-through') as demo:
                 )
                 depth_resolution_input = gr.Slider(
                     label='Depth Resolution',
-                    minimum=512, maximum=1536, step=128, value=720,
+                    minimum=512, maximum=1536, step=128, value=768,
                     visible=False,
-                    info='Lower values (e.g. 720) save VRAM with minimal quality loss. Default: 720'
+                    info='Lower values save VRAM with slightly reduced depth accuracy. Default: 768 (model training resolution)'
                 )
                 depth_same_input.change(
                     fn=lambda x: gr.update(visible=not x),
@@ -324,15 +325,20 @@ with gr.Blocks(title='See-through') as demo:
         outputs=[psd_output, preview_output, status_output]
     )
 
-def _cleanup():
+def _cleanup(*args):
     """Release directory handles so workspace can be deleted after exit."""
     try:
         os.chdir(osp.expanduser('~'))
     except Exception:
         pass
+    if args:
+        sys.exit(0)
 
 if __name__ == '__main__':
     atexit.register(_cleanup)
+    if sys.platform == 'win32':
+        signal.signal(signal.SIGBREAK, _cleanup)
+    signal.signal(signal.SIGTERM, _cleanup)
     demo.launch(
         server_name='127.0.0.1',
         server_port=7860,

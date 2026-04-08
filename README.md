@@ -24,9 +24,9 @@ A one-click portable launcher based on [See-through](https://github.com/shitagak
 ## System Requirements
 
 - **OS**: Windows 10 / 11
-- **Python**: 3.10 - 3.12 (check "Add Python to PATH" during installation)
-- **GPU**: NVIDIA GPU with at least 8 GB VRAM
-- **NVIDIA Driver**: Latest version recommended
+- **Python**: 3.10 - 3.12 (if not installed, `run.bat` will automatically install Python 3.12 via winget)
+- **GPU**: NVIDIA GPU with at least 8 GB VRAM (GTX 10 series to RTX 50 series supported)
+- **NVIDIA Driver**: Version 560 or above (latest version recommended)
 - **Disk Space**: ~20 GB (including model downloads)
 
 ## Usage
@@ -73,7 +73,7 @@ huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models
 | Left/Right Split | OFF | Split gloves, eyes, ears, etc. into separate left/right layers |
 | Cache Tag Embeddings | ON | Pre-compute text embeddings and unload text encoders, saves ~2 GB VRAM with zero speed penalty |
 | Group Offload | OFF | Move model blocks on/off GPU as needed. Drastically reduces VRAM but 2-3x slower |
-| Depth Resolution | -1 | -1 = same as layer resolution. Lower values (e.g. 720) save VRAM with slightly reduced depth accuracy |
+| Depth Resolution | -1 | -1 = same as layer resolution. Lower values save VRAM with slightly reduced depth accuracy. Custom default: 768 (model training resolution) |
 
 ## VRAM Optimization Guide
 
@@ -84,7 +84,7 @@ Default settings are fine. Cache Tag Embeddings is already enabled by default.
 Try the following in order, from least to most impact on speed:
 
 1. **Cache Tag Embeddings = ON** (already enabled by default) — Saves ~2 GB with zero speed penalty
-2. **Lower Depth Resolution** — Uncheck "Depth resolution same as layers", defaults to 720, adjustable. Saves VRAM with slightly reduced depth accuracy
+2. **Lower Depth Resolution** — Uncheck "Depth resolution same as layers", defaults to 768 (model training resolution), adjustable. Saves VRAM with slightly reduced depth accuracy
 3. **Lower Resolution** — e.g. 1024 instead of 1280, reduces both VRAM and computation time
 4. **Group Offload = ON** — Last resort. Drastically reduces VRAM but 2-3x slower
 
@@ -100,11 +100,29 @@ Output files are located in the `workspace/layerdiff_output/` folder:
 **Q: run.bat closes immediately?**
 A: Right-click run.bat > Edit, check that the file encoding is UTF-8 with BOM or ANSI. Or run `run.bat` directly in cmd to see error messages.
 
+**Q: run.bat is blocked by Windows SmartScreen?**
+A: Click "More info" → "Run anyway".
+
+**Q: "No compatible Python (3.10 - 3.12) found"?**
+A: `run.bat` will automatically install Python 3.12 via winget. After installation, close the window and double-click `run.bat` again.
+
+**Q: How to uninstall the auto-installed Python?**
+A: Open a command prompt and run: `winget uninstall Python.Python.3.12`
+
 **Q: "No NVIDIA GPU with CUDA detected"?**
-A: Make sure you have the latest NVIDIA driver installed. AMD GPUs are not supported.
+A: Make sure you have NVIDIA driver version 560 or above. Download the latest driver: https://www.nvidia.com/download/index.aspx . AMD GPUs are not supported.
+
+**Q: "CUDA error: no kernel image is available"?**
+A: Your GPU is too old. This tool requires at least an NVIDIA GTX 10 series GPU.
 
 **Q: C++ compiler error during dependency installation?**
 A: Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/).
+
+**Q: Model download was interrupted?**
+A: Run `run.bat` again. The download will resume from where it left off.
+
+**Q: Does the folder path with spaces or special characters cause issues?**
+A: It is recommended to extract the package to a simple path, e.g. `D:\see-through-portable`, avoiding paths with spaces or special characters.
 
 **Q: How long does it take to process one image?**
 A: Processing time varies greatly depending on GPU performance and image resolution.

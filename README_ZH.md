@@ -24,9 +24,9 @@
 ## 系統需求
 
 - **作業系統**：Windows 10 / 11
-- **Python**：3.10 - 3.12（安裝時請勾選「Add Python to PATH」）
-- **顯示卡**：NVIDIA GPU，至少 8 GB VRAM
-- **NVIDIA 驅動**：建議安裝最新版本
+- **Python**：3.10 - 3.12（如未安裝，`run.bat` 會自動透過 winget 安裝 Python 3.12）
+- **顯示卡**：NVIDIA GPU，至少 8 GB VRAM（GTX 10 系列至 RTX 50 系列皆支援）
+- **NVIDIA 驅動**：版本 560 以上（建議安裝最新版本）
 - **硬碟空間**：約 20 GB（含模型下載）
 
 ## 使用方式
@@ -73,7 +73,7 @@ huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models
 | Left/Right Split | OFF | 將手套、眼睛、耳朵等部位分成左右兩個圖層 |
 | Cache Tag Embeddings | ON | 預先計算文字嵌入並卸載文字編碼器，省約 2 GB VRAM，零速度損失 |
 | Group Offload | OFF | 按需移動模型區塊進出 GPU，大幅降低 VRAM 但慢 2-3 倍 |
-| Depth Resolution | -1 | -1 同圖層解析度，設較低值如 720 可省 VRAM，品質損失極小 |
+| Depth Resolution | -1 | -1 同圖層解析度，較低值可省 VRAM，深度精度會略降。自訂預設：768（模型訓練解析度） |
 
 ## VRAM 優化指南
 
@@ -84,7 +84,7 @@ huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models
 依影響程度由小到大，依序嘗試：
 
 1. **Cache Tag Embeddings = ON**（預設已開啟）— 省約 2 GB，零速度損失
-2. **降低 Depth Resolution** — 取消勾選「深度解析度與圖層相同」，預設 720，可自行調整，省 VRAM 但深度精度會略降
+2. **降低 Depth Resolution** — 取消勾選「深度解析度與圖層相同」，預設 768（模型訓練解析度），可自行調整，省 VRAM 但深度精度會略降
 3. **降低 Resolution** — 例如 1024 取代 1280，同時減少 VRAM 和計算時間
 4. **Group Offload = ON** — 最後手段，大幅降低 VRAM 但慢 2-3 倍
 
@@ -100,11 +100,29 @@ huggingface-cli download 24yearsold/seethroughv0.0.1_marigold --cache-dir models
 **Q: run.bat 一開就關掉了？**
 A: 對 run.bat 按右鍵 > 編輯，確認檔案編碼為 UTF-8 with BOM 或 ANSI。或直接在 cmd 中執行 `run.bat` 查看錯誤訊息。
 
+**Q: run.bat 被 Windows SmartScreen 擋住？**
+A: 點擊「更多資訊」→「仍要執行」即可。
+
+**Q: 出現「No compatible Python (3.10 - 3.12) found」？**
+A: `run.bat` 會自動透過 winget 安裝 Python 3.12。安裝完成後關閉視窗，重新雙擊 `run.bat` 即可。
+
+**Q: 如何移除自動安裝的 Python？**
+A: 開啟命令提示字元，執行：`winget uninstall Python.Python.3.12`
+
 **Q: 出現「No NVIDIA GPU with CUDA detected」？**
-A: 請確認已安裝最新的 NVIDIA 驅動程式。本工具不支援 AMD 顯卡。
+A: 請確認已安裝 560 以上版本的 NVIDIA 驅動程式。下載最新驅動：https://www.nvidia.com/download/index.aspx 。本工具不支援 AMD 顯卡。
+
+**Q: 出現「CUDA error: no kernel image is available」？**
+A: 顯卡太舊，不支援。本工具至少需要 GTX 10 系列以上的 NVIDIA 顯卡。
 
 **Q: 安裝依賴時出現 C++ 編譯器錯誤？**
 A: 請安裝 [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)。
+
+**Q: 模型下載中斷了怎麼辦？**
+A: 重新執行 `run.bat` 即可，會自動從中斷處繼續下載。
+
+**Q: 資料夾路徑有中文或空格會有問題嗎？**
+A: 建議將懶人包解壓縮到簡單路徑，例如 `D:\see-through-portable`，避免路徑含中文或空格。
 
 **Q: 處理一張圖片需要多久？**
 A: 依顯卡效能和圖片解析度不同，處理時間會有很大差異。
