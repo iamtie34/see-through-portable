@@ -24,7 +24,7 @@
 ## 系統需求
 
 - **作業系統**：Windows 10 / 11
-- **Python**：3.10 以上（安裝時請勾選「Add Python to PATH」）
+- **Python**：3.10 - 3.12（安裝時請勾選「Add Python to PATH」）
 - **顯示卡**：NVIDIA GPU，至少 8 GB VRAM
 - **NVIDIA 驅動**：建議安裝最新版本
 - **硬碟空間**：約 20 GB（含模型下載）

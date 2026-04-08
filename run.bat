@@ -16,34 +16,45 @@ echo ========================================================================
 echo.
 
 :: ──────────────────────────────────────────────────────
-:: Step 1: Find Python
+:: Step 1: Find compatible Python (3.10 - 3.12)
 :: ──────────────────────────────────────────────────────
 echo [1/4] Checking Python...
 
 set "SYS_PYTHON="
-where python >nul 2>&1 && (
-    for /f "delims=" %%i in ('where python') do (
-        if not defined SYS_PYTHON set "SYS_PYTHON=%%i"
+
+:: Try py launcher first (supports version selection)
+where py >nul 2>&1 && (
+    for %%v in (3.12 3.11 3.10) do (
+        if not defined SYS_PYTHON (
+            py -%%v -c "import sys; print(sys.executable)" >_pyexe.tmp 2>nul
+            if not errorlevel 1 (
+                set /p SYS_PYTHON=<_pyexe.tmp
+            )
+            if exist "_pyexe.tmp" del "_pyexe.tmp"
+        )
     )
 )
+
+:: Fallback: check PATH python
 if not defined SYS_PYTHON (
-    where py >nul 2>&1 && (
-        for /f "delims=" %%i in ('py -3 -c "import sys; print(sys.executable)"') do (
+    where python >nul 2>&1 && (
+        for /f "delims=" %%i in ('where python') do (
             if not defined SYS_PYTHON set "SYS_PYTHON=%%i"
         )
     )
 )
+
 if not defined SYS_PYTHON (
     echo.
     echo  ERROR: Python not found!
-    echo  Please install Python 3.10+ from https://www.python.org/downloads/
+    echo  Please install Python 3.10 - 3.12 from https://www.python.org/downloads/
     echo  Make sure to check "Add Python to PATH" during installation.
     echo.
     pause
     exit /b 1
 )
 
-:: Check Python version >= 3.10
+:: Verify version is 3.10 - 3.12
 "!SYS_PYTHON!" -c "import sys; f=open('_pyver.tmp','w'); f.write(f'{sys.version_info.major}.{sys.version_info.minor}'); f.close()" 2>nul
 if exist "_pyver.tmp" (
     set /p PY_VER=<_pyver.tmp
@@ -54,13 +65,24 @@ if exist "_pyver.tmp" (
 for /f "tokens=1,2 delims=." %%a in ("!PY_VER!") do (
     if %%a LSS 3 goto :bad_version
     if %%a==3 if %%b LSS 10 goto :bad_version
+    if %%a==3 if %%b GTR 12 goto :too_new
 )
 echo        Found Python !PY_VER! at !SYS_PYTHON!
 goto :check_venv
 
 :bad_version
 echo.
-echo  ERROR: Python !PY_VER! is too old. Please install Python 3.10 or newer.
+echo  ERROR: Python !PY_VER! is too old. Please install Python 3.10 - 3.12.
+echo  Download: https://www.python.org/downloads/
+echo.
+pause
+exit /b 1
+
+:too_new
+echo.
+echo  ERROR: Python !PY_VER! is too new. PyTorch does not yet support it.
+echo  Please install Python 3.10 - 3.12.
+echo  Download: https://www.python.org/downloads/
 echo.
 pause
 exit /b 1
@@ -101,7 +123,7 @@ echo.
 
 :: Install PyTorch with CUDA
 echo  Installing PyTorch with CUDA support...
-"%PIP%" install torch==2.8.0+cu128 torchvision==0.23.0+cu128 torchaudio==2.8.0+cu128 --index-url https://download.pytorch.org/whl/cu128
+"%PIP%" install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 if errorlevel 1 (
     echo.
     echo  ERROR: Failed to install PyTorch.

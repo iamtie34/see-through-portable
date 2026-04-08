@@ -24,7 +24,7 @@ A one-click portable launcher based on [See-through](https://github.com/shitagak
 ## System Requirements
 
 - **OS**: Windows 10 / 11
-- **Python**: 3.10 or above (check "Add Python to PATH" during installation)
+- **Python**: 3.10 - 3.12 (check "Add Python to PATH" during installation)
 - **GPU**: NVIDIA GPU with at least 8 GB VRAM
 - **NVIDIA Driver**: Latest version recommended
 - **Disk Space**: ~20 GB (including model downloads)
